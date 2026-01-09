@@ -1,0 +1,25 @@
+services:
+  # UNICO CONTAINER NEO4J con init script
+  neo4j:
+    image: neo4j:5
+    container_name: fraud-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/StrongPassword123
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - ./init-data:/init-csv           # CSV da importare
+      - neo4j_data:/data                # Database
+      - ./custom-entrypoint.sh:/custom-entrypoint.sh
+      - ./constraints.cypher:/var/lib/neo4j/init/constraints.cypher  # Constraints eseguiti automaticamente
+    entrypoint: ["/bin/bash", "/custom-entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "StrongPassword123", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  neo4j_data:

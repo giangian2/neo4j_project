@@ -1,0 +1,4 @@
+query,execution_time_seconds,rows,success
+q1a,0.09354376792907715,6,True
+q1b,0.12805724143981934,20,True
+q1c,0.022263050079345703,34,True
