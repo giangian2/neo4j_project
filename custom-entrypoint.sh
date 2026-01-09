@@ -5,7 +5,7 @@
 set -e
 
 echo "========================================"
-echo "🚀 ENTRYPOINT PERSONALIZZATO NEO4J"
+echo "ENTRYPOINT PERSONALIZZATO NEO4J"
 echo "========================================"
 
 # Directory CSV
@@ -14,15 +14,15 @@ DATA_DIR="/data/databases/neo4j"
 
 # 1. Controlla se ci sono CSV da importare
 if [ -f "${CSV_DIR}/customers.csv" ]; then
-    echo "📁 CSV rilevati in ${CSV_DIR}"
-    echo "   File trovati:"
+    echo "CSV rilevati in ${CSV_DIR}"
+    echo "File trovati:"
     ls -la ${CSV_DIR}/*.csv 2>/dev/null | awk '{print "   - " $9}'
     
     # 2. Controlla se il database ESISTE già
     if [ -d "${DATA_DIR}" ] && [ "$(ls -A ${DATA_DIR} 2>/dev/null)" ]; then
-        echo "✅ Database già esistente, salto l'import"
+        echo "Database già esistente, salto l'import"
     else
-        echo "🆕 Database vuoto, avvio import con neo4j-admin..."
+        echo "Database vuoto, avvio import con neo4j-admin..."
         
         # 3. Esegui neo4j-admin import
         START_TIME=$(date +%s)
@@ -49,24 +49,23 @@ if [ -f "${CSV_DIR}/customers.csv" ]; then
         END_TIME=$(date +%s)
         
         if [ $IMPORT_RESULT -eq 0 ]; then
-            echo "✅ Import completato in $((END_TIME - START_TIME)) secondi"
-            echo "🛡️  Constraints verranno creati automaticamente all'avvio di Neo4j"
+            echo "Import completato in $((END_TIME - START_TIME)) secondi"
+            echo "Constraints verranno creati automaticamente all'avvio di Neo4j"
         else
-            echo "❌ Import fallito!"
+            echo "Import fallito!"
             exit 1
         fi
     fi
 else
-    echo "⏭️  Nessun CSV da importare, avvio normale"
+    echo "⏭Nessun CSV da importare, avvio normale"
 fi
 
 # 5. Verifica che constraints.cypher sia presente
 if [ -f "/var/lib/neo4j/init/constraints.cypher" ]; then
-    echo "🛡️  File constraints.cypher trovato, verrà eseguito automaticamente all'avvio"
+    echo "File constraints.cypher trovato, verrà eseguito automaticamente all'avvio"
 fi
 
-# 6. Avvia Neo4j NORMALE usando l'entrypoint originale
-echo "🚀 Avvio Neo4j..."
+
 # Trova e chiama l'entrypoint originale di Neo4j
 if [ -f "/startup/docker-entrypoint.sh" ]; then
     exec /startup/docker-entrypoint.sh neo4j

@@ -3,7 +3,7 @@ WHERE m <> n
   AND abs(
         toInteger(m.total_tx_count) -
         toInteger(n.total_tx_count)
-      ) <= 50  // Rilassato da 2 a 50 per dataset realistici
+      ) <= 100  // Rilassato da 2 a 50 per dataset realistici
 WITH m, n, count(s) AS shared_terminals
 WHERE shared_terminals >= 4
 RETURN

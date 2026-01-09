@@ -56,9 +56,9 @@ class Cli:
             Tuple (n_customers, n_terminals, nb_days)
         """
         size_map = {
-            '50MB': (1000, 200, 120),
-            '100MB': (1000, 200, 365),
-            '200MB': (1000, 200, 1000),
+            '50MB': (1000, 100, 120),
+            '100MB': (1000, 100, 365),
+            '200MB': (1000, 100, 1000),
         }
         return size_map.get(target_size_mb, (1000, 200, 90))
     

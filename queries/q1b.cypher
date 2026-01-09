@@ -18,5 +18,4 @@ RETURN
     ratio,
     round((ratio - 1) * 100, 2) AS percentage_above,
     'POTENTIAL_OUTLIER' AS status
-ORDER BY ratio DESC
-LIMIT 20;
+ORDER BY ratio DESC;
