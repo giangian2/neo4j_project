@@ -261,11 +261,11 @@ class QueryExecutor:
         
         # Query 3.c
         if 'q1c' in self.engine.queries:
-            self.engine.execute_query('q1c', params={'customerId': '0'})
+            self.engine.execute_query('q1c', params={'customerId': '889'})
             if self.engine.metrics[-1].success:
                 result = self.engine.manager.run_cypher(
                     self.engine.queries['q1c'],
-                    params={'customerId': '0'},
+                    params={'customerId': '889'},
                     parser='dataframe'
                 )
                 if result.success and isinstance(result.data, pd.DataFrame):

@@ -18,3 +18,10 @@ FOR (tx:Transaction) ON (tx.fraud);
 CREATE INDEX transaction_datetime_idx IF NOT EXISTS 
 FOR (tx:Transaction) ON (tx.datetime);
 
+// Indici per Query 3.b - migliorano lookup su prev_median e amount
+CREATE INDEX quarter_prev_median_idx IF NOT EXISTS 
+FOR (q:Quarter) ON (q.prev_median);
+
+CREATE INDEX transaction_amount_idx IF NOT EXISTS 
+FOR (tx:Transaction) ON (tx.amount);
+
