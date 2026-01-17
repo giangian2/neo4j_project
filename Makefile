@@ -42,7 +42,7 @@ stop:
 
 reimport:
 	@docker-compose down -v
-	@docker-compose up -d neo4j
+	@docker-compose up neo4j
 	@echo "✅ Database reimportato"
 
 query:

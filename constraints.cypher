@@ -25,3 +25,13 @@ FOR (q:Quarter) ON (q.prev_median);
 CREATE INDEX transaction_amount_idx IF NOT EXISTS 
 FOR (tx:Transaction) ON (tx.amount);
 
+// Indici aggiuntivi per ottimizzare tutte le query
+CREATE INDEX customer_id_idx IF NOT EXISTS 
+FOR (c:Customer) ON (c.customerId);
+
+CREATE INDEX terminal_id_idx IF NOT EXISTS 
+FOR (t:Terminal) ON (t.terminalId);
+
+CREATE INDEX quarter_id_idx IF NOT EXISTS 
+FOR (q:Quarter) ON (q.quarterId);
+

@@ -50,7 +50,8 @@ if [ -f "${CSV_DIR}/customers.csv" ]; then
         
         if [ $IMPORT_RESULT -eq 0 ]; then
             echo "Import completato in $((END_TIME - START_TIME)) secondi"
-            echo "Constraints verranno creati automaticamente all'avvio di Neo4j"
+            echo "Database importato, creo marker per applicare constraints..."
+            touch /data/.apply_constraints
         else
             echo "Import fallito!"
             exit 1
@@ -60,18 +61,50 @@ else
     echo "⏭Nessun CSV da importare, avvio normale"
 fi
 
-# 5. Verifica che constraints.cypher sia presente
-if [ -f "/var/lib/neo4j/init/constraints.cypher" ]; then
-    echo "File constraints.cypher trovato, verrà eseguito automaticamente all'avvio"
-fi
-
-
-# Trova e chiama l'entrypoint originale di Neo4j
-if [ -f "/startup/docker-entrypoint.sh" ]; then
-    exec /startup/docker-entrypoint.sh neo4j
-elif [ -f "/docker-entrypoint.sh" ]; then
-    exec /docker-entrypoint.sh neo4j
+# 5. Avvia Neo4j e applica constraints se necessario
+if [ -f "/data/.apply_constraints" ] && [ -f "/var/lib/neo4j/init/constraints.cypher" ]; then
+    echo "Database nuovo rilevato, applicherò constraints dopo l'avvio di Neo4j"
+    
+    # Avvia Neo4j in background
+    if [ -f "/startup/docker-entrypoint.sh" ]; then
+        /startup/docker-entrypoint.sh neo4j &
+    elif [ -f "/docker-entrypoint.sh" ]; then
+        /docker-entrypoint.sh neo4j &
+    else
+        /usr/bin/neo4j console &
+    fi
+    
+    NEO4J_PID=$!
+    
+    # Attendi che Neo4j sia pronto
+    echo "Attendo che Neo4j sia pronto..."
+    max_attempts=60
+    attempt=0
+    
+    while [ $attempt -lt $max_attempts ]; do
+        if cypher-shell -u neo4j -p StrongPassword123 "RETURN 1" >/dev/null 2>&1; then
+            echo "Neo4j è pronto, applico constraints e indici..."
+            if cypher-shell -u neo4j -p StrongPassword123 -f /var/lib/neo4j/init/constraints.cypher; then
+                echo "✅ Constraints e indici applicati con successo"
+                rm -f /data/.apply_constraints
+                break
+            else
+                echo "⚠️  Errore nell'applicare constraints"
+            fi
+        fi
+        attempt=$((attempt + 1))
+        sleep 2
+    done
+    
+    # Mantieni Neo4j in foreground
+    wait $NEO4J_PID
 else
-    # Se non troviamo l'entrypoint, avviamo Neo4j direttamente
-    exec /usr/bin/neo4j console
+    # Avvia Neo4j normalmente
+    if [ -f "/startup/docker-entrypoint.sh" ]; then
+        exec /startup/docker-entrypoint.sh neo4j
+    elif [ -f "/docker-entrypoint.sh" ]; then
+        exec /docker-entrypoint.sh neo4j
+    else
+        exec /usr/bin/neo4j console
+    fi
 fi
