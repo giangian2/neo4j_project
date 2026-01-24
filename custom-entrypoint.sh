@@ -34,10 +34,8 @@ if [ -f "${CSV_DIR}/customers.csv" ]; then
             --nodes="${CSV_DIR}/quarters.csv" \
             --relationships="${CSV_DIR}/cust_tx.csv" \
             --relationships="${CSV_DIR}/tx_term.csv" \
-            --relationships="${CSV_DIR}/shares_terminal.csv" \
             --relationships="${CSV_DIR}/used_terminal.csv" \
             --relationships="${CSV_DIR}/transaction_quarter.csv" \
-            --relationships="${CSV_DIR}/terminal_quarter.csv" \
             --skip-duplicate-nodes=true \
             --skip-bad-relationships=true \
             --bad-tolerance=10000 \
@@ -85,11 +83,11 @@ if [ -f "/data/.apply_constraints" ] && [ -f "/var/lib/neo4j/init/constraints.cy
         if cypher-shell -u neo4j -p StrongPassword123 "RETURN 1" >/dev/null 2>&1; then
             echo "Neo4j è pronto, applico constraints e indici..."
             if cypher-shell -u neo4j -p StrongPassword123 -f /var/lib/neo4j/init/constraints.cypher; then
-                echo "✅ Constraints e indici applicati con successo"
+                echo "Constraints e indici applicati con successo"
                 rm -f /data/.apply_constraints
                 break
             else
-                echo "⚠️  Errore nell'applicare constraints"
+                echo "Errore nell'applicare constraints"
             fi
         fi
         attempt=$((attempt + 1))

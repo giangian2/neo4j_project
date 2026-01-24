@@ -81,6 +81,9 @@ class Converters:
             .merge(total_tx, on='CUSTOMER_ID', how='left')
             .fillna(0)
         )
+        
+        # Converti total_tx_count in int (evita errori con :INT annotation)
+        customers_df['total_tx_count'] = customers_df['total_tx_count'].astype(int)
 
         customers_csv = customers_df[[
             'CUSTOMER_ID',
@@ -92,8 +95,12 @@ class Converters:
             'total_tx_count'
         ]].rename(columns={
             'CUSTOMER_ID': 'customerId:ID(Customer)',
-            'x_customer_id': 'x',
-            'y_customer_id': 'y'
+            'x_customer_id': 'x:FLOAT',
+            'y_customer_id': 'y:FLOAT',
+            'mean_amount': 'mean_amount:FLOAT',
+            'std_amount': 'std_amount:FLOAT',
+            'mean_nb_tx_per_day': 'mean_nb_tx_per_day:FLOAT',
+            'total_tx_count': 'total_tx_count:INT'
         })
 
         customers_csv[':LABEL'] = 'Customer'
@@ -106,12 +113,12 @@ class Converters:
 
         terminals_csv = terminals.rename(columns={
             'TERMINAL_ID': 'terminalId:ID(Terminal)',
-            'x_terminal_id': 'x',
-            'y_terminal_id': 'y'
+            'x_terminal_id': 'x:FLOAT',
+            'y_terminal_id': 'y:FLOAT'
         })
 
         terminals_csv[':LABEL'] = 'Terminal'
-        terminals_csv = terminals_csv[['terminalId:ID(Terminal)', 'x', 'y', ':LABEL']]
+        terminals_csv = terminals_csv[['terminalId:ID(Terminal)', 'x:FLOAT', 'y:FLOAT', ':LABEL']]
         terminals_csv.to_csv(f'{output_folder}/terminals.csv', index=False)
 
         # =====================================================
@@ -126,23 +133,26 @@ class Converters:
             'prev_median'
         ]].copy()
         
+        # Converti year e quarter in int (evita errori con :INT annotation)
+        quarter_csv['year'] = quarter_csv['year'].astype(int)
+        quarter_csv['quarter'] = quarter_csv['quarter'].astype(int)
+        
+        # Rinomina colonne con tipi corretti (usati con toFloat in q1b)
+        quarter_csv = quarter_csv.rename(columns={
+            'year': 'year:INT',
+            'quarter': 'quarter:INT',
+            'current_median': 'current_median:FLOAT',
+            'prev_median': 'prev_median:FLOAT'
+        })
+        
         quarter_csv[':LABEL'] = 'Quarter'
         quarter_csv.to_csv(f'{output_folder}/quarters.csv', index=False)
         
         print(f"\nPrime 5 Quarter nodes:")
         print(quarter_csv.head())
 
-        # =====================================================
-        # 2c. TERMINAL -> QUARTER (RELAZIONE)
-        # =====================================================
-        terminal_quarter_rel = pd.DataFrame({
-            ':START_ID(Terminal)': quarter_nodes['TERMINAL_ID_STR'],
-            ':END_ID(Quarter)': quarter_nodes['quarterId:ID(Quarter)'],
-            ':TYPE': 'HAS_QUARTER'
-        })
-        
-        terminal_quarter_rel = terminal_quarter_rel.drop_duplicates()
-        terminal_quarter_rel.to_csv(f'{output_folder}/terminal_quarter.csv', index=False)
+        # NOTA: HAS_QUARTER rimossa - non utilizzata nelle query
+        # Le query accedono ai Quarter tramite IN_QUARTER (Transaction -> Quarter)
 
         # =====================================================
         # 3. TRANSACTIONS - DEVE usare lo STESSO quarter_id!
@@ -164,7 +174,7 @@ class Converters:
         # Mostra transazioni problematiche
         if not tx['has_valid_quarter'].all():
             problematic = tx[~tx['has_valid_quarter']]
-            print("\nTransazioni problematiche (prime 5):")
+            print("\nTransazioni problematiche:")
             print(problematic[['TRANSACTION_ID', 'TERMINAL_ID', 'year', 'quarter', 'quarter_id']].head())
             
             # Crea Quarter nodes mancanti per queste transazioni
@@ -183,28 +193,30 @@ class Converters:
                 }])
                 quarter_csv = pd.concat([quarter_csv, new_quarter], ignore_index=True)
                 
-                # Aggiungi relazione Terminal->Quarter
-                new_rel = pd.DataFrame([{
-                    ':START_ID(Terminal)': f"T{row['TERMINAL_ID']}",
-                    ':END_ID(Quarter)': quarter_id,
-                    ':TYPE': 'HAS_QUARTER'
-                }])
-                terminal_quarter_rel = pd.concat([terminal_quarter_rel, new_rel], ignore_index=True)
+                # NOTA: HAS_QUARTER non viene più creata (rimossa - non utilizzata)
             
             # Salva versioni aggiornate
             quarter_csv.to_csv(f'{output_folder}/quarters.csv', index=False)
-            terminal_quarter_rel.to_csv(f'{output_folder}/terminal_quarter.csv', index=False)
 
+        # Converti datetime in formato ISO 8601 per Neo4j DATETIME
+        # Formato: YYYY-MM-DDTHH:MM:SS (es: 2018-04-01T00:00:31)
+        # NOTA: neo4j-admin import inferisce automaticamente il tipo DATETIME dal formato ISO 8601
+        # Le annotazioni :DATETIME, :FLOAT, :INT sono opzionali (solo documentazione)
+        tx['TX_DATETIME_ISO'] = tx['TX_DATETIME'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+        
+        # Converti TX_FRAUD in int (evita errori con :INT annotation)
+        tx['TX_FRAUD'] = tx['TX_FRAUD'].astype(int)
+        
         transactions_csv = tx[[
             'TRANSACTION_ID',
             'TX_AMOUNT',
-            'TX_DATETIME',
+            'TX_DATETIME_ISO',
             'TX_FRAUD'
         ]].rename(columns={
             'TRANSACTION_ID': 'transactionId:ID(Transaction)',
-            'TX_AMOUNT': 'amount',
-            'TX_DATETIME': 'datetime',
-            'TX_FRAUD': 'fraud'
+            'TX_AMOUNT': 'amount:FLOAT',  # Annotazione opzionale (Neo4j inferisce FLOAT dal formato)
+            'TX_DATETIME_ISO': 'datetime:DATETIME',  # Annotazione opzionale (Neo4j inferisce DATETIME da ISO 8601)
+            'TX_FRAUD': 'fraud:INT'  # Annotazione opzionale (Neo4j inferisce INT dal formato)
         })
 
         transactions_csv[':LABEL'] = 'Transaction'
@@ -226,21 +238,7 @@ class Converters:
         print(f"Relazioni Transaction->Quarter create: {len(transaction_quarter_rel)}")
 
         # =====================================================
-        # 4. CUSTOMER -> TRANSACTION
-        # =====================================================
-        cust_tx = transactions[[
-            'CUSTOMER_ID',
-            'TRANSACTION_ID'
-        ]].rename(columns={
-            'CUSTOMER_ID': ':START_ID(Customer)',
-            'TRANSACTION_ID': ':END_ID(Transaction)'
-        })
-
-        cust_tx[':TYPE'] = 'MADE_TRANSACTION'
-        cust_tx.to_csv(f'{output_folder}/cust_tx.csv', index=False)
-
-        # =====================================================
-        # 5. TRANSACTION -> TERMINAL
+        # 4. TRANSACTION -> TERMINAL (AT_TERMINAL)
         # =====================================================
         tx_term = transactions[[
             'TRANSACTION_ID',
@@ -258,6 +256,20 @@ class Converters:
         tx_term.to_csv(f'{output_folder}/tx_term.csv', index=False)
 
         # =====================================================
+        # 5. CUSTOMER -> TRANSACTION
+        # =====================================================
+        cust_tx = transactions[[
+            'CUSTOMER_ID',
+            'TRANSACTION_ID'
+        ]].rename(columns={
+            'CUSTOMER_ID': ':START_ID(Customer)',
+            'TRANSACTION_ID': ':END_ID(Transaction)'
+        })
+
+        cust_tx[':TYPE'] = 'MADE_TRANSACTION'
+        cust_tx.to_csv(f'{output_folder}/cust_tx.csv', index=False)
+
+        # =====================================================
         # 6. CUSTOMER -> TERMINAL (USED_TERMINAL)
         # =====================================================
         used_terminal = (
@@ -271,67 +283,23 @@ class Converters:
         used_terminal[':END_ID(Terminal)'] = 'T' + used_terminal['TERMINAL_ID'].astype(str)
         used_terminal[':TYPE'] = 'USED_TERMINAL'
 
+        # Converti tx_count in int (evita errori con :INT annotation)
+        used_terminal['tx_count'] = used_terminal['tx_count'].astype(int)
+        
+        # Rinomina tx_count con tipo
+        used_terminal = used_terminal.rename(columns={'tx_count': 'tx_count:INT'})
+        
         used_terminal_csv = used_terminal[[
             ':START_ID(Customer)',
             ':END_ID(Terminal)',
-            'tx_count',
+            'tx_count:INT',
             ':TYPE'
         ]]
 
         used_terminal_csv.to_csv(f'{output_folder}/used_terminal.csv', index=False)
 
         # =====================================================
-        # 7. CUSTOMER ↔ CUSTOMER (SHARES_TERMINAL)
-        # =====================================================
-        cust_term_map = (
-            transactions
-            .groupby('CUSTOMER_ID')['TERMINAL_ID']
-            .apply(set)
-            .to_dict()
-        )
-
-        shares_records = []
-        customer_ids = list(cust_term_map.keys())
-
-        for i, c1 in enumerate(customer_ids):
-            for c2 in customer_ids[i + 1:]:
-                shared = cust_term_map[c1] & cust_term_map[c2]
-                for t in shared:
-                    shares_records.append({
-                        ':START_ID(Customer)': c1,
-                        ':END_ID(Customer)': c2,
-                        'terminal_id': f'T{t}',
-                        ':TYPE': 'SHARES_TERMINAL'
-                    })
-
-        pd.DataFrame(shares_records).to_csv(
-            f'{output_folder}/shares_terminal.csv',
-            index=False
-        )
-
-        # =====================================================
-        # VERIFICA FINALE
-        # =====================================================
-        print(f"\n✅ CONVERSIONE COMPLETATA")
+        print(f"\nCONVERSIONE COMPLETATA")
         print(f"Cartella: {output_folder}")
-        
-        # Verifica consistenza
-        print("\n=== VERIFICA CONSISTENZA ===")
-        quarters_set = set(quarter_csv['quarterId:ID(Quarter)'])
-        tx_quarters_set = set(tx['quarter_id'].unique())
-        
-        print(f"Quarter nodes nel file: {len(quarters_set)}")
-        print(f"Quarter unici nelle transazioni: {len(tx_quarters_set)}")
-        
-        missing = tx_quarters_set - quarters_set
-        if missing:
-            print(f"⚠️  Quarter mancanti in nodes: {len(missing)}")
-            print(f"Esempi: {list(missing)[:5]}")
-        else:
-            print("✅ Tutti i quarter delle transazioni hanno un nodo corrispondente")
-        
-        # Verifica relazioni
-        rel_df = pd.read_csv(f'{output_folder}/transaction_quarter.csv')
-        print(f"\nRelazioni Transaction->Quarter: {len(rel_df)}")
 
         return output_folder

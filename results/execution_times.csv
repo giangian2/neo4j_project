@@ -1,4 +1,4 @@
 query,execution_time_seconds,rows,success
-extend_tx,0.6781244277954102,1,True
-freq_collab,18.332534790039062,1,True
-stats_day,3.773712158203125,7,True
+extend_tx,1.6225407123565674,1,True
+freq_collab,4.629289150238037,1,True
+stats_day,0.8948993682861328,7,True

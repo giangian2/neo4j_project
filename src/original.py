@@ -92,7 +92,7 @@ def generate_transactions_table(customer_profile, start_date="2018-04-01", nb_da
     return customer_transactions
 
 def generate_dataset(n_customers=10000, n_terminals=1000000, nb_days=90, 
-                     start_date="2018-04-01", r=5):
+                     start_date="2018-04-01", r=10):
     start_time=time.time()
     customer_profiles_table = generate_customer_profiles_table(n_customers, random_state=0)
     print("Time to generate customer profiles table: {0:.2}s".format(time.time()-start_time))
