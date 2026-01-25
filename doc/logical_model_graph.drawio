@@ -1,0 +1,109 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Logical Model Graph" id="logical-model">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Customer Node -->
+        <mxCell id="customer" value="Customer" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="80" y="360" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="customer-props" value="customerId&lt;br&gt;x, y&lt;br&gt;mean_amount&lt;br&gt;std_amount&lt;br&gt;mean_nb_tx_per_day&lt;br&gt;total_tx_count&lt;br&gt;avg_satisfaction_rating" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="50" y="450" width="180" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Transaction Node -->
+        <mxCell id="transaction" value="Transaction" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="480" y="360" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="transaction-props" value="transactionId&lt;br&gt;amount&lt;br&gt;datetime&lt;br&gt;fraud&lt;br&gt;payment_method&lt;br&gt;promotional_offer&lt;br&gt;satisfaction_rating&lt;br&gt;potentialOutlier" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="450" y="450" width="180" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Terminal Node -->
+        <mxCell id="terminal" value="Terminal" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="880" y="360" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="terminal-props" value="terminalId&lt;br&gt;x, y" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="850" y="450" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Quarter Node -->
+        <mxCell id="quarter" value="Quarter" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="480" y="120" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="quarter-props" value="quarterId&lt;br&gt;year&lt;br&gt;quarter&lt;br&gt;current_median&lt;br&gt;prev_median" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="450" y="210" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- MADE_TRANSACTION: Customer → Transaction -->
+        <mxCell id="made-tx" value="MADE_TRANSACTION" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#6c8ebf;" edge="1" parent="1" source="customer" target="transaction">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- AT_TERMINAL: Transaction → Terminal -->
+        <mxCell id="at-terminal" value="AT_TERMINAL" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d6b656;" edge="1" parent="1" source="transaction" target="terminal">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- IN_QUARTER: Transaction → Quarter -->
+        <mxCell id="in-quarter" value="IN_QUARTER" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="transaction" target="quarter">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- USED_TERMINAL: Customer → Terminal -->
+        <mxCell id="used-terminal" value="USED_TERMINAL&lt;br&gt;(tx_count)" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;curved=1;" edge="1" parent="1" source="customer" target="terminal">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- FREQUENT_COLLABORATOR: Customer ↔ Customer (self-loop) -->
+        <mxCell id="freq-collab" value="FREQUENT_COLLABORATOR&lt;br&gt;(shared_terminals_count,&lt;br&gt;avg_rating_diff)" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b85450;curved=1;" edge="1" parent="1" source="customer" target="customer">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="150" y="280" as="sourcePoint" />
+            <mxPoint x="200" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="150" y="280" />
+              <mxPoint x="40" y="280" />
+              <mxPoint x="40" y="320" />
+              <mxPoint x="150" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Title -->
+        <mxCell id="title" value="Neo4j Logical Data Model - Graph View" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="300" y="40" width="400" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="600" width="940" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="610" width="100" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-1" value="MADE_TRANSACTION: Direct link from customer to transaction" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="640" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-2" value="AT_TERMINAL: Transaction to terminal link" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="660" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-3" value="IN_QUARTER: Transaction to quarter link (temporal analysis)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="680" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-4" value="USED_TERMINAL: Pre-computed aggregation (tx_count property)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="500" y="640" width="300" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-5" value="FREQUENT_COLLABORATOR: Extended relationship (created during extension phase)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="500" y="660" width="400" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-note" value="All relationships are directed. Properties shown in parentheses." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="500" y="680" width="400" height="20" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
+

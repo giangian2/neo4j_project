@@ -1,0 +1,39 @@
+Project: Creation of a NoSQL Database for Credit Card Fraud Detection
+Payment card fraud presents a significant and growing challenge for businesses, payment card issuers, and transactional service providers, resulting in substantial annual financial losses. Numerous Machine Learning (ML) techniques have been developed to automate the identification of fraudulent patterns within large datasets. The book "Machine Learning for Credit Card Fraud Detection - Practical Handbook" 1 provides a comprehensive overview of these approaches and methods for evaluating prediction quality.
+This project does not focus on implementing or validating ML algorithms. Instead, it utilises the transaction data simulator code provided in Section 2, Chapter 3 of the referenced handbook (https://fraud-detection-handbook.github.io/fraud-detection-handbook/Chapter_3_GettingStarted
+/SimulatedDataset.html) to generate synthetic datasets for populating a NoSQL database. The simulator has the purpose to generate 3 tables:
+1. Customer profile. Each customer has a unique identifier and is associated with the following properties: geographical location, spending frequency, and spending amounts. Moreover, the list of terminals on which the customer makes transactions is associated with his profile
+2. Terminal profile. Terminal properties consist of a geographical location.
+3. Transactions. This table reports for each transaction, the customer identifier, the terminal identifier, the amount that has been paid, and the date on which the transaction occurred. Some transactions can be marked as fraudulent.
+Details on these tables and the Python scripts for the generation of the tables can be found at: fraud- detection-handbook.github.io/fraud-detection-handbook/Chapter_3_GettingStarted/SimulatedDataset.html
+The following activities should be carried out:
+1. Generate at least three datasets using the provided scripts, each containing the customer, terminal, and transaction tables. The datasets should be of increasing size (minimum 50MB, 100MB, and 200MB), with each dataset comprising at least 1000 customers and 200 terminals. Increase the number of transactions to achieve the required dataset sizes.
+2. Define a conceptual model for the considered domain.
+3. Choose one of the NOSQL systems considered in the course (MongoDB, Neo4J, PGQL in Oracle) and provide a data modeling to optimize the execution of the following operations:
+a. For each customer M, identify all customers N who have made transactions at at least four of the same terminals as M, and whose total transaction count differs by no more than two compared to M. Return the names of M and N, the number of shared terminals, and their respective transaction counts.
+b. For every terminal, list transactions from the current quarter that are more than 30% higher than the median transaction value for that terminal in the previous quarter. Mark these as "potential outliers".
+c. Given a user u, determine the "co-customer network CNk of degree k". A customer y belongs CNk(u) if there is a path "u1-t1-u2-t2-...tk-1-uk" such that u1=u, uk=y, and for each 1<=I,j<=k, ui <> uj, and t1,..tk-1 are the terminals on which a transaction occurred. Please, note that depending on the adopted model, the computation of CNk(u) could be quite complicated. Consider therefore at least the computation of CC3(u) (i.e. the co-customer network of degree 3).
+
+
+
+1  https://fraud-detection-handbook.github.io/fraud-detection-handbook
+
+d. Extend the logical model that you have stored in the NOSQL database by introducing the following information (pay attention that this operation should be done once the NOSQL database has been already loaded with the data extracted from the datasets):
+i. Each transaction should be extended with:
+a. The payment method used (e.g., credit card, mobile payment, paypal).
+b. Whether the transaction was part of a promotional offer (yes/no).
+c. The customer's satisfaction rating (integer 1-5, randomly assigned if not available). The values can be chosen randomly.
+ii. Additionally, connect customers who have made at least five transactions at the same terminal and have an average satisfaction rating within 0.5 of each other as "frequent collaborators". Ensure this relationship is queryable.
+e. For each day of the week, calculate the total number of transactions and the proportion of transactions flagged as outliers (as defined in query 3.b). Present the results in a summary table.
+4. Create a script for loading the considered datasets in the chosen NOSQL and develop the scripts for implementing the previous operations. Take in mind that depending on the identified system, primitives of the query language should be embedded in a Python script.
+5. Evaluate the execution times for all the previous operations (also the one for updating the NOSQL datastore) in the generated datasets.
+3. What to deliver
+The project can be delivered at any time of the academic year and is valid until April 2027. After this date, a new project will be assigned.
+The project must be carried out by groups of at most 2 students. You have to submit a zip file containing the following documents:
+1. A single PDF file containing the technical documentation. The document must contain:
+a. 	The UML class diagram with explanations, motivations, constraints, and any other information that allows understanding the design carried out (it encompasses also the modification expressed on the initial data).
+b. The logical data model that has been realized for addressing the requirements imposed by the proposed operations. It is mandatory the presence of the motivations that led to the generation of the data model.
+c. The description of the script for loading the datasets in the chosen NOSQL system
+d. The description of the scripts for the implementation of the required operations
+e. A discussion of the performances obtained by the execution of the operations on the three considered datasets (included the loading operations). Please, discuss the eventual application of patterns for improving the performances of the considered operations. Please, include graphics for comparing the obtained performances.
+2. All the scripts that have been developed and the information for reproducing the experiments that you have carried out.
