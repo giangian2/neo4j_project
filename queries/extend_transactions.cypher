@@ -1,7 +1,4 @@
-// EXTEND - Estendi transazioni con nuove proprietà in batch
-// Aggiunge: payment_method, promotional_offer, satisfaction_rating
-// Pre-calcola avg_satisfaction_rating per ogni Customer
-
+// FASE 1: Estensione transazioni in batch (ottimizzato per memoria)
 CALL {
     MATCH (tx:Transaction)
     WHERE tx.payment_method IS NULL
@@ -14,11 +11,17 @@ CALL {
 
 WITH sum(batch_count) as transactions_extended
 
+// FASE 2: Pre-calcolo avg_satisfaction_rating per ogni Customer
+// Ottimizzazione: calcolato una volta qui invece che per ogni coppia in 3.d.ii
 MATCH (c:Customer)-[:MADE_TRANSACTION]->(tx:Transaction)
 WHERE tx.satisfaction_rating IS NOT NULL
-WITH transactions_extended, c, avg(toInteger(tx.satisfaction_rating)) AS avg_rating
+WITH transactions_extended, 
+     c, 
+     avg(toInteger(tx.satisfaction_rating)) AS avg_rating
 SET c.avg_satisfaction_rating = avg_rating
-WITH transactions_extended, count(c) as customers_with_rating
+WITH transactions_extended, 
+     count(DISTINCT c) as customers_with_rating
 
-RETURN transactions_extended, customers_with_rating;
+RETURN transactions_extended, 
+       customers_with_rating;
 

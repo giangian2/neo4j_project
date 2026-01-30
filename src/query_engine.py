@@ -133,7 +133,10 @@ class QueryExecutor:
         
         print("\n2. Creazione relazioni FREQUENT_COLLABORATOR...")
         self.engine.load_query('freq_collab', 'queries/create_frequent_collaborators.cypher')
-        self.engine.execute_query('freq_collab')
+        m_freq = self.engine.execute_query('freq_collab')
+        if m_freq.success and isinstance(m_freq.data, pd.DataFrame):
+            m_freq.data.to_csv(os.path.join(output_dir, 'create_frequent_collaborators.csv'), index=False)
+            print(f"   Relazioni create: {m_freq.data.iloc[0, 0]} -> salvato in {output_dir}/create_frequent_collaborators.csv")
         
         print("\n3. Calcolo statistiche per giorno settimana...")
         self.engine.load_query('stats_day', 'queries/stats_by_day.cypher')
