@@ -29,14 +29,14 @@ class Converters:
         # =====================================================
         # SOLUZIONE SEMPLICE: Quarter solo per combinazioni REALI
         # =====================================================
-        # 1. Calcola mediana per ogni combo reale (TERMINAL_ID, year, quarter)
+        # 1. Calcola mediana per ogni comb reale (TERMINAL_ID, year, quarter)
         median_q = (
             tx.groupby(['TERMINAL_ID', 'year', 'quarter'])['TX_AMOUNT']
             .median()
             .reset_index(name='current_median')
         )
         
-        # 2. Crea Quarter nodes SOLO per combo reali
+        # 2. Crea Quarter nodes SOLO per comb reali
         quarter_nodes = median_q.copy()
         
         # 3. Calcola quarter precedente per OGNI riga
@@ -82,7 +82,6 @@ class Converters:
             .fillna(0)
         )
         
-        # Converti total_tx_count in int (evita errori con :INT annotation)
         customers_df['total_tx_count'] = customers_df['total_tx_count'].astype(int)
 
         customers_csv = customers_df[[
@@ -151,9 +150,6 @@ class Converters:
         print(f"\nPrime 5 Quarter nodes:")
         print(quarter_csv.head())
 
-        # NOTA: HAS_QUARTER rimossa - non utilizzata nelle query
-        # Le query accedono ai Quarter tramite IN_QUARTER (Transaction -> Quarter)
-
         # =====================================================
         # 3. TRANSACTIONS - DEVE usare lo STESSO quarter_id!
         # =====================================================
@@ -163,7 +159,6 @@ class Converters:
             axis=1
         )
         
-        # VERIFICA: tutte le transazioni hanno un quarter_id valido?
         valid_quarter_ids = set(quarter_nodes['quarterId:ID(Quarter)'])
         tx['has_valid_quarter'] = tx['quarter_id'].isin(valid_quarter_ids)
         
@@ -198,13 +193,10 @@ class Converters:
             # Salva versioni aggiornate
             quarter_csv.to_csv(f'{output_folder}/quarters.csv', index=False)
 
-        # Converti datetime in formato ISO 8601 per Neo4j DATETIME
-        # Formato: YYYY-MM-DDTHH:MM:SS (es: 2018-04-01T00:00:31)
-        # NOTA: neo4j-admin import inferisce automaticamente il tipo DATETIME dal formato ISO 8601
-        # Le annotazioni :DATETIME, :FLOAT, :INT sono opzionali (solo documentazione)
+        # Converte datetime in formato ISO 8601 per Neo4j DATETIME
         tx['TX_DATETIME_ISO'] = tx['TX_DATETIME'].dt.strftime('%Y-%m-%dT%H:%M:%S')
         
-        # Converti TX_FRAUD in int (evita errori con :INT annotation)
+        # Converte TX_FRAUD in int (evita errori con :INT annotation)
         tx['TX_FRAUD'] = tx['TX_FRAUD'].astype(int)
         
         transactions_csv = tx[[
