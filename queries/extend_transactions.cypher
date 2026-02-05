@@ -1,4 +1,3 @@
-// FASE 1: Estensione transazioni in batch (ottimizzato per memoria)
 CALL {
     MATCH (tx:Transaction)
     WHERE tx.payment_method IS NULL
@@ -11,8 +10,6 @@ CALL {
 
 WITH sum(batch_count) as transactions_extended
 
-// FASE 2: Pre-calcolo avg_satisfaction_rating per ogni Customer
-// Ottimizzazione: calcolato una volta qui invece che per ogni coppia in 3.d.ii
 MATCH (c:Customer)-[:MADE_TRANSACTION]->(tx:Transaction)
 WHERE tx.satisfaction_rating IS NOT NULL
 WITH transactions_extended, 
